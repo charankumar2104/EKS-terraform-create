@@ -2,31 +2,41 @@ name: Destroy EKS Cluster
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DESTROY to confirm"
+        required: true
 
-
-jobs: 
-  infras-create: 
+jobs:
+  destroy:
     runs-on: ubuntu-latest
-    
 
-    steps: 
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    defaults:
+      run:
+        working-directory: terraform
 
-      - name: terraform setup
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.7.5
+    steps:
+    - name: Safety Check
+      if: github.event.inputs.confirm != 'DESTROY'
+      run: |
+        echo "Confirmation failed. Exiting."
+        exit 1
 
-      - name: aws configure
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      
-      - name: Terraform Init
-        run: terraform init
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve

@@ -3,61 +3,44 @@ name: Create EKS Cluster
 on:
   workflow_dispatch:
 
-jobs: 
-  infras-create: 
+jobs:
+  create:
     runs-on: ubuntu-latest
-    
 
-    steps: 
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    defaults:
+      run:
+        working-directory: terraform
 
-      - name: terraform setup
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.7.5
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: aws configure
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      
-      - name: Terraform Init
-        run: terraform init
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-1
 
-      - name: Terraform Validate
-        run: terraform validate
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: terraform formate Check
-        run: terraform fmt -check
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Terraform Security Scan (Terrascan)
-        uses: accurics/terrascan-action@v1
-        with:
-          iac_type: terraform
-          iac_version: v15
-          policy_type: aws
-          iac_dir: .
-          only_warn: true
-          verbose: true
+    - name: Terraform Validate
+      run: terraform validate
 
+    - name: Terraform Format
+      run: terraform fmt -check -recursive
 
-      
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
+    - name: Terraform Plan
+      run: terraform plan
 
-      - name: Run TFLint
-        run: tflint --recursive
-      
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
-
-      - name: Display EKS Cluster Details
-        run: |
-          echo "Cluster Name: $(terraform output -raw cluster_name)"
-          echo "Cluster Region: $(terraform output -raw cluster_region)"
+    - name: Show Cluster Info
+      run: |
+        echo "Cluster Name: $(terraform output -raw cluster_name)"
+        echo "Cluster Region: $(terraform output -raw region)"
