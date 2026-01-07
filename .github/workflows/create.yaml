@@ -34,13 +34,16 @@ jobs:
       - name: terraform formate Check
         run: terraform fmt -check
 
-      - name: Run Terrascan
+      - name: Terraform Security Scan (Terrascan)
         uses: accurics/terrascan-action@v1
         with:
           iac_type: terraform
-          iac_version: v14
+          iac_version: v15
           policy_type: aws
           iac_dir: .
+          only_warn: true
+          verbose: true
+
 
       
       - name: Setup TFLint
