@@ -1,9 +1,8 @@
-name: Infrastructure-create
+name: Create EKS Cluster
 
-on: 
-  push: 
-    branches: 
-      - main
+on:
+  workflow_dispatch:
+
 jobs: 
   infras-create: 
     runs-on: ubuntu-latest
