@@ -40,7 +40,8 @@ jobs:
           iac_type: terraform
           iac_version: v14
           policy_type: aws
-          path: .
+          iac_dir: .
+
       
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
