@@ -22,21 +22,21 @@ jobs:
         echo "Confirmation failed. Exiting."
         exit 1
 
-    - name: Checkout Code
+    - name: Checkout Code  # Checkout the repository code
       uses: actions/checkout@v4
 
-    - name: Configure AWS
+    - name: Configure AWS  # Configure AWS credentials for Terraform to use
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-1
 
-    - name: Setup Terraform
+    - name: Setup Terraform # Set up Terraform
       uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Destroy
-      run: terraform destroy -auto-approve
+    - name: Terraform Init # Initialize Terraform
+      run: terraform init 
+    
+    - name: Terraform Destroy # Destroy Terraform-managed infrastructure
+      run: terraform destroy -auto-approve   

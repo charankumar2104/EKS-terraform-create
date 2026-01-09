@@ -12,35 +12,56 @@ jobs:
         working-directory: terraform
 
     steps:
-    - name: Checkout Code
+    - name: Checkout Code  # Checkout the repository code
       uses: actions/checkout@v4
 
-    - name: Configure AWS
+    - name: Configure AWS  # Configure AWS credentials for Terraform to use 
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-1
 
-    - name: Setup Terraform
+    - name: Setup Terraform # Set up Terraform
       uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
+    - name: Terraform Init # Initialize Terraform
       run: terraform init
 
-    - name: Terraform Validate
+    - name: Terraform Validate # Validate Terraform configuration
       run: terraform validate
 
-    - name: Terraform Format
-      run: terraform fmt -check -recursive
+    - name: Terraform Format # Check Terraform code formatting
+      run: terraform fmt -check -recursive # Check if Terraform files are properly formatted
 
-    - name: Terraform Plan
+    - name: Setup TFLint # Set up TFLint for linting Terraform code
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: latest 
+
+    - name: Run TFLint # Lint Terraform code
+      run: |
+        tflint --init  
+        tflint 
+
+    - name: Install Terrascan # Install Terrascan for security scanning
+      run: |
+        curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz \
+        | tar -xz
+        sudo mv terrascan /usr/local/bin/terrascan
+
+    - name: Run Terrascan # Scan Terraform code for security issues
+      run: |
+        terrascan init
+        terrascan scan -t terraform -i terraform
+
+    - name: Terraform Plan # Create and show Terraform execution plan
       run: terraform plan
 
-    - name: Terraform Apply
+    - name: Terraform Apply # Apply Terraform configuration
       run: terraform apply -auto-approve
 
-    - name: Show Cluster Info
+    - name: Show Cluster Info # Output cluster information
       run: |
         echo "Cluster Name: $(terraform output -raw cluster_name)"
         echo "Cluster Region: $(terraform output -raw region)"
